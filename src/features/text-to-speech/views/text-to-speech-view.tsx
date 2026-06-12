@@ -42,7 +42,7 @@ export function TextToSpeechView({
 
     return (
         <TTSVoicesProvider value={{ customVoices, systemVoices, allVoices }}>
-            <TextToSpeechForm defaultValues={defaultTTSValues}>
+            <TextToSpeechForm defaultValues={defaultValues}>
                 <div className="flex flex-1 min-h-0 overflow-hidden">
                     <div className="flex min-h-0 flex-1 flex-col">
                         <TextInputPanel />
