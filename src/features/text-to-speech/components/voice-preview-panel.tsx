@@ -17,9 +17,15 @@ type VoicePreviewPanelVoice = {
   name: string;
 };
 
+// fixed the time showing 30:XX instead of 00:XX
 function formatTime(seconds: number): string {
-  return format(new Date(seconds * 1000), "mm:ss");
-};
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+
+  return `${mins.toString().padStart(2, '0')}:${secs
+    .toString()
+    .padStart(2, '0')}`;
+}
 
 export function VoicePreviewPanel({
   audioUrl,
