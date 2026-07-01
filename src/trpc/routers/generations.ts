@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { polar } from "@/lib/polar";
 import { chatterbox } from "@/lib/chatterbox-client";
 import { prisma } from "@/lib/database";
 import { uploadAudio } from "@/lib/r2";
@@ -54,6 +55,28 @@ export const generationsRouter = createTRPCRouter({
             })
         )
         .mutation(async ({ input, ctx }) => {
+            // check for active subscription before generation
+            try {
+                const customerState = await polar.customers.getStateExternal({
+                    externalId: ctx.orgId,
+                });
+                const hasActiveSubscription =
+                    (customerState.activeSubscriptions ?? []).length > 0
+                if (!hasActiveSubscription) {
+                    throw new TRPCError({
+                        code: "FORBIDDEN",
+                        message: "SUBSCRIPTION_REQUIRED",
+                    });
+                }
+            } catch (err) {
+                if (err instanceof TRPCError) throw err;
+                // customer doesn't exist in polar yet which also could mean no subscription... you never know
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "SUBSCRIPTION_REQUIRED"
+                });
+            }
+
             const voice = await prisma.voice.findUnique({
                 where: {
                     id: input.voiceId,
@@ -169,6 +192,21 @@ export const generationsRouter = createTRPCRouter({
                     message: "Failed to store generated audio."
                 });
             }
+
+            polar.events
+                .ingest({
+                    events: [
+                        {
+                            name: "tts_generation",
+                            externalCustomerId: ctx.orgId,
+                            metadata: { characters: input.text.length },
+                            timestamp: new Date(),
+                        },
+                    ],
+                })
+                .catch(() => {
+                    // fails, idek why. sob
+                });
 
             return {
                 id: generationId,
