@@ -115,7 +115,7 @@ function FileDropzone({
 
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{file.name}</p>
-                    <p className="text-xs text-muted foreground">
+                    <p className="text-xs text-muted-foreground">
                         {formatFileSize(file.size)}
                     </p>
                 </div>
@@ -125,12 +125,23 @@ function FileDropzone({
                     variant="ghost"
                     size="icon-sm"
                     onClick={togglePlay}
+                    aria-label={isPlaying ? "Pause" : "Play"}
                 >
                     {isPlaying ? (
                         <Pause className="size-4" />
                     ) : (
                         <Play className="size-4" />
                     )}
+                </Button>
+
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => onFileChange(null)}
+                    aria-label="Remove file"
+                >
+                    <X className="size-4" />
                 </Button>
             </div>
         );
@@ -153,7 +164,7 @@ function FileDropzone({
                 <AudioLines className="size-5 text-muted-foreground" />
             </div>
 
-            <div className="flex flex-col items-center gap-1 5">
+            <div className="flex flex-col items-center gap-1.5">
                 <p className="text-base font-semibold tracking-tight">
                     Upload your audio file
                 </p>
@@ -265,19 +276,20 @@ export function VoiceCreateForm({
             language: string,
             description?: string;
         }) => {
-            const params = new URLSearchParams({
-                name,
-                category,
-                language,
-            });
+            const headers: Record<string, string> = {
+                "Content-Type": file.type,
+                "x-voice-name": name,
+                "x-voice-category": category,
+                "x-voice-language": language,
+            };
             if (description) {
-                params.set("description", description);
+                headers["x-voice-description"] = description;
             }
 
             const response =
-                await fetch(`/api/voices/create?${params.toString()}`, {
+                await fetch(`/api/voices/create`, {
                     method: "POST",
-                    headers: { "Content-Type": file.type },
+                    headers,
                     body: file,
                 });
             
@@ -355,13 +367,13 @@ export function VoiceCreateForm({
                         return (
                             <Field data-invalid={isInvalid}>
                                 <Tabs defaultValue="upload">
-                                    <TabsList className="h-11! w-full">
+                                    <TabsList className="h-11 w-full">
                                         <TabsTrigger value="upload">
-                                            <Upload className="size-3 5" />
+                                            <Upload className="size-3.5" />
                                             Upload
                                         </TabsTrigger>
                                         <TabsTrigger value="record">
-                                            <Mic className="size-3 5" />
+                                            <Mic className="size-3.5" />
                                             Record
                                         </TabsTrigger>
                                     </TabsList>
@@ -423,7 +435,7 @@ export function VoiceCreateForm({
                         return (
                             <Field data-invalid={isInvalid}>
                                 <div className="relative flex items-center">
-                                    <div className="pointer-events-none absolute-left-0 flex h-full w-11 items-center justify-center">
+                                    <div className="pointer-events-none absolute left-0 flex h-full w-11 items-center justify-center">
                                         <Tag className="size-4 text-muted-foreground" />
                                     </div>
                                     <Select

@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryState } from "nuqs";
 import { useDebouncedCallback } from "use-debounce";
 import { Search, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { 
+import {
     InputGroup,
     InputGroupInput,
     InputGroupAddon,
@@ -19,6 +19,10 @@ export function VoicesToolbar() {
     );
     const [localQuery, setLocalQuery] = useState(query);
 
+    useEffect(() => {
+        setLocalQuery(query);
+    }, [query]);
+
     const debouncedSetQuery = useDebouncedCallback(
         (value: string) => setQuery(value),
         300,
@@ -28,10 +32,10 @@ export function VoicesToolbar() {
         <div className="space-y-4">
             <div>
                 <h2 className="text-xl lg:text-2xl font-semibold tracking-tight">
-                    All Libraries
+                    Voice Library
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                    Discover your voices, or make your own
+                    Browse built-in voices or create your own custom voice
                 </p>
             </div>
 

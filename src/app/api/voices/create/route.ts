@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { parseBuffer } from "music-metadata";
 import { z } from "zod";
 import { prisma } from "@/lib/database";
-import { uploadAudio } from "@/lib/r2";
+import { uploadAudio, deleteAudio } from "@/lib/r2";
 import { VOICE_CATEGORIES } from "@/features/voices/data/voice-categories";
 import type { VoiceCategory } from "@/generated/prisma/client";
 
@@ -23,13 +23,11 @@ export async function POST(request: Request) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const url = new URL(request.url);
-
     const validation = createVoiceSchema.safeParse({
-        name: url.searchParams.get("name"),
-        category: url.searchParams.get("category"),
-        language: url.searchParams.get("language"),
-        description: url.searchParams.get("description"),
+        name: request.headers.get("x-voice-name"),
+        category: request.headers.get("x-voice-category"),
+        language: request.headers.get("x-voice-language"),
+        description: request.headers.get("x-voice-description"),
     });
 
     if (!validation.success) {
@@ -97,6 +95,7 @@ export async function POST(request: Request) {
     }
 
     let createdVoiceId: string | null = null;
+    let r2ObjectKey: string | null = null;
 
     try {
         const voice = await prisma.voice.create({
@@ -114,7 +113,7 @@ export async function POST(request: Request) {
         });
 
         createdVoiceId = voice.id;
-        const r2ObjectKey = `voices/orgs/${orgId}/${voice.id}`;
+        r2ObjectKey = `voices/orgs/${orgId}/${voice.id}`;
 
         await uploadAudio({
             buffer: Buffer.from(fileBuffer),
@@ -131,6 +130,9 @@ export async function POST(request: Request) {
             },
         });
     } catch {
+        if (r2ObjectKey) {
+            await deleteAudio(r2ObjectKey).catch(() => {});
+        }
         if (createdVoiceId) {
             await prisma.voice
                 .delete({

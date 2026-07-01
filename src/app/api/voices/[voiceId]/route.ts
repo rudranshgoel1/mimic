@@ -35,8 +35,28 @@ export async function GET(
         return new Response("Voice audio is not available yet", { status: 409 });
     }
 
-    const signedUrl = await getSignedAudioUrl(voice.r2ObjectKey);
-    const audioResponse = await fetch(signedUrl);
+    let signedUrl: string;
+    try {
+        signedUrl = await getSignedAudioUrl(voice.r2ObjectKey);
+    } catch {
+        return new Response("Failed to generate audio URL", { status: 502 });
+    }
+
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 10000);
+
+    let audioResponse: Response;
+    try {
+        audioResponse = await fetch(signedUrl, { signal: abortController.signal });
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof Error && error.name === "AbortError") {
+            return new Response("Audio fetch timeout", { status: 504 });
+        }
+        return new Response("Failed to fetch voice audio", { status: 502 });
+    } finally {
+        clearTimeout(timeoutId);
+    }
 
     if (!audioResponse.ok) {
         return new Response("Failed to fetch voice audio", { status: 502 });

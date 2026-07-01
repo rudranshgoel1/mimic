@@ -78,8 +78,8 @@ export function VoiceCard({ voice }: VoiceCardProps) {
     );
 
     return (
-        <div className="flex items-center gap-1 overflow-hidden rounded xl border pr-3 lg:pr-6">
-            <div className="relative h-23 w-20 shrink-0 lg:h-30 lg:w-24">
+        <div className="flex items-center gap-4 overflow-hidden rounded-xl border pr-3 lg:pr-6">
+            <div className="relative h-24 w-20 shrink-0 lg:h-30 lg:w-24">
                 <div className="absolute left-0 top-0 h-24 w-10 border-r bg-muted/50 lg:h-30 lg:w-12" />
 
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -92,8 +92,8 @@ export function VoiceCard({ voice }: VoiceCardProps) {
 
             </div>
 
-            <div className="flex min-w-0 flex-1 flex-col gap-1 5 lg:gap-3">
-                <div className="flex items-center gap-1 5 line-clamp-1 text-sm font-medium tracking-tight">
+            <div className="flex min-w-0 flex-1 flex-col gap-1.5 lg:gap-3">
+                <div className="flex items-center gap-1.5 line-clamp-1 text-sm font-medium tracking-tight">
                     {voice.name}
                     <span className="size-1 shrink-0 rounded-full bg-muted-foreground/50" />
                     <span className="text-[#327c88]">
@@ -101,7 +101,7 @@ export function VoiceCard({ voice }: VoiceCardProps) {
                     </span>
                 </div>
 
-                <p className="line-clamp-1 text-xs text-muted foreground">
+                <p className="line-clamp-1 text-xs text-muted-foreground">
                     {voice.description}
                 </p>
 
@@ -118,6 +118,7 @@ export function VoiceCard({ voice }: VoiceCardProps) {
                     className="rounded-full"
                     onClick={togglePlay}
                     disabled={isLoading}
+                    aria-label={isPlaying ? "Pause preview" : "Play preview"}
                 >
                     {isLoading ? (
                         <Spinner className="size-4" />
@@ -133,6 +134,7 @@ export function VoiceCard({ voice }: VoiceCardProps) {
                             variant="outline"
                             size="icon-sm"
                             className="rounded-full"
+                            aria-label="More options"
                         >
                             <MoreHorizontal className="size-4" />
                         </Button>
